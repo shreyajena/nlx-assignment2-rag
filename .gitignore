@@ -1,0 +1,44 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Mac OS
+.DS_Store
+
+# Python packaging
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Logs
+*.log
+
+# Data (keep only processed files small enough for reproducibility)
+data/raw/
+*.parquet
+*.csv
+
+# Results that are large
+results/*.json
+results/*.csv
+
+# If you want to push *final results only*, remove above filters for `results/`
+
+# Environment files
+.env
