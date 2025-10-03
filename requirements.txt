@@ -1,0 +1,15 @@
+pandas
+datasets
+evaluate
+sentence-transformers
+faiss-cpu
+transformers
+torch
+ragas
+pyarrow
+matplotlib
+scikit-learn
+google-genai
+python-dotenv
+pymilvus
+evaluate
