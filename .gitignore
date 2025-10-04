@@ -35,7 +35,6 @@ data/raw/
 *.csv
 
 # Results that are large
-results/*.json
 results/*.csv
 
 # If you want to push *final results only*, remove above filters for `results/`
