@@ -1,0 +1,44 @@
+{
+  "sentence-transformers/paraphrase-MiniLM-L3-v2": {
+    "top_1": {
+      "exact_match": 45.0,
+      "f1": 50.997836930094984
+    },
+    "top_3": {
+      "exact_match": 46.0,
+      "f1": 50.718258826000756
+    },
+    "top_5": {
+      "exact_match": 24.0,
+      "f1": 26.823306868570022
+    }
+  },
+  "sentence-transformers/all-MiniLM-L6-v2": {
+    "top_1": {
+      "exact_match": 49.0,
+      "f1": 54.26926550152356
+    },
+    "top_3": {
+      "exact_match": 44.0,
+      "f1": 49.9353473728686
+    },
+    "top_5": {
+      "exact_match": 34.0,
+      "f1": 38.28795935247548
+    }
+  },
+  "sentence-transformers/all-mpnet-base-v2": {
+    "top_1": {
+      "exact_match": 52.0,
+      "f1": 57.066928859670796
+    },
+    "top_3": {
+      "exact_match": 46.0,
+      "f1": 51.71137459032196
+    },
+    "top_5": {
+      "exact_match": 31.0,
+      "f1": 35.772482866290915
+    }
+  }
+}

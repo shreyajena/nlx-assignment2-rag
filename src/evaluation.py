@@ -1,11 +1,12 @@
-# src/evaluation.py
-
 import pandas as pd
 import evaluate as hf_evaluate
 from naive_rag import get_or_build_faiss, rag
 import config
+import numpy as np
+import faiss
 import json, os, random
-RESULTS_PATH = "results/naive_results.json"
+RESULTS_PATH_STEP3 = "results/naive_results_step3.json"
+RESULTS_PATH_STEP4 = "results/naive_results_step4.json"
 
 # ---------- Load Test Queries ----------
 def load_test_queries(path=config.QUERIES_PATH):
@@ -29,9 +30,11 @@ def evaluate(schema, index, embedder, queries, style="basic", k=1, max_queries=N
     for i, row in queries.iterrows():
         q = row["question"]
         gold = row["answer"]
-        
+
+        concat = True if k > 1 else False
+
         try:
-            pred = rag(q, schema, index, embedder, k=k, style=style)
+            pred = rag(q, schema, index, embedder, k=k, style=style,concat=concat )
         except Exception as e:
             pred = "ERROR"
 
@@ -48,9 +51,58 @@ def compute_metrics(preds, golds):
     scores = squad_metric.compute(predictions=predictions, references=references)
     return scores
 
+
+# ---------- STEP 4: Evaluating on different embedding size and top-k ----------
+def run_step4_experiments():
+    # Compare embedding sizes and retrieval depths by rebuilding FAISS with different sentence-transformer models.
+    models = {
+        256: "sentence-transformers/paraphrase-MiniLM-L3-v2",
+        384: "sentence-transformers/all-MiniLM-L6-v2",
+        512: "sentence-transformers/all-mpnet-base-v2"
+    }
+    retrieval_ks = [1, 3, 5]
+    results_dict = {}
+
+    queries = load_test_queries().head(100) #Running with 300 queries from the test dataset
+    schema = pd.read_parquet(config.PASSAGES_PATH)
+
+    for dim, model_name in models.items():
+        print(f"\n>> Building FAISS with model {model_name} ({dim}-dim embeddings)")
+        from sentence_transformers import SentenceTransformer
+        embedder = SentenceTransformer(model_name)
+        embs = embedder.encode(schema["passage"].tolist(), convert_to_numpy=True, show_progress_bar=True)
+        embs = embs / np.linalg.norm(embs, axis=1, keepdims=True)
+
+        index = faiss.IndexFlatIP(embs.shape[1])
+        index.add(embs.astype("float32"))
+
+        model_results = {}
+        for k in retrieval_ks:
+            print(f"   Evaluating top_k = {k}")
+            preds, golds = evaluate(schema, index, embedder, queries, style="basic", k=k)
+            scores = compute_metrics(preds, golds)
+            print(f"      EM={scores['exact_match']:.2f}, F1={scores['f1']:.2f}")
+
+            model_results[f"top_{k}"] = {
+                "exact_match": scores["exact_match"],
+                "f1": scores["f1"]
+            }
+
+        results_dict[model_name] = model_results
+
+    # --- Save results ---
+    os.makedirs("results", exist_ok=True)
+    with open(RESULTS_PATH_STEP4, "w") as f:
+        json.dump(results_dict, f, indent=2)
+
+    print(f"Saved results to {RESULTS_PATH_STEP4}")
+
+
 # ---------- Main ----------
 
 if __name__ == "__main__":
+
+    print("\n========== STEP 3: Prompting Startegy Comparison ==========")
     schema, index, embedder = get_or_build_faiss(config.PASSAGES_PATH, config.EMBED_MODEL)
     queries = load_test_queries()
 
@@ -75,7 +127,11 @@ if __name__ == "__main__":
     
     # Save results to JSON
     os.makedirs("results", exist_ok=True)
-    with open(RESULTS_PATH, "w") as f:
+    with open(RESULTS_PATH_STEP3, "w") as f:
         json.dump(all_results, f, indent=2)
     
-    print(f"Saved results to {RESULTS_PATH}")
+    print(f"Saved results to {RESULTS_PATH_STEP3}")
+
+    # Run Step 4 only
+    print("\n========== STEP 4: Changing Embedding and Top-k Parameters ==========")
+    run_step4_experiments()

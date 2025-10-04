@@ -7,7 +7,6 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-
 client, model_name = setup_llm()
 
 # ---------- FAISS Utilities ----------
@@ -100,10 +99,14 @@ def generate(query, context, style="basic"):
         return f"LLM Error: {e}"
 
 
-def rag(query, schema, index, embedder, k=config.TOP_K, style="basic"):
+def rag(query, schema, index, embedder, k=config.TOP_K, style="basic", concat=False):
     #Full RAG pipeline: retrieve + generate
-    rag_context = retrieve(query, index, embedder, schema, k)
-    return generate(query, rag_context[0], style = style) if rag_context else "insufficient context"
+    # Added context joining when retrieving top-k with k>1
+   context = retrieve(query, index, embedder, schema, k)
+   if not context:
+        return "insufficient context"
+   rag_context = "\n\n".join(context) if concat else context[0]
+   return generate(query, rag_context, style=style)
 
 # ---------- Main for Step 2 ----------
 if __name__ == "__main__":
