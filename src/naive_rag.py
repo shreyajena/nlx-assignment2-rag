@@ -2,6 +2,11 @@ import os, faiss, numpy as np, pandas as pd
 from sentence_transformers import SentenceTransformer
 import config
 from utils import setup_llm
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 client, model_name = setup_llm()
 
@@ -86,13 +91,11 @@ def generate(query, context, style="basic"):
     Question: {query}
     Answer:
     """
-
     try:
-        response = client.models.generate_content(
-            model=model_name,
-            contents=prompt
-        )
-        return response.text.strip()
+        tokenizer, llm = setup_llm() 
+        inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+        outputs = llm.generate(**inputs, max_new_tokens=50, do_sample=False, num_beams=1)
+        return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
     except Exception as e:
         return f"LLM Error: {e}"
 

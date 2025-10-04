@@ -1,16 +1,13 @@
 import os, time, json, numpy as np, yaml
 from google import genai
-from dotenv import load_dotenv
 import os
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-load_dotenv()
-api_key = os.environ.get("GEMINI_API_KEY")
-
-def setup_llm(api_key_env=api_key, model_name="gemini-2.5-flash"):
-    if not api_key_env:
-        raise RuntimeError(f"{api_key_env} not set. export {api_key_env}='YOUR_KEY'")
-    client = genai.Client(api_key=api_key_env)
-    return client, model_name
+def setup_llm(model_name="google/flan-t5-small"):
+   #Load a lightweight local model for QA (default: flan-t5-small).Returns tokenizer and model.
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    return tokenizer, model
 
 def now_ts():
     return time.strftime("%Y-%m-%dT%H:%M:%S")

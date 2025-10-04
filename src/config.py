@@ -20,8 +20,3 @@ NORMALIZE = True
 # Using FAISS 
 TOP_K = 1   # naive_rag retrieval depth
 
-# ---------------- LLM ----------------
-# Gemini free-tier (cloud)
-LLM = "gemini-2.5-flash"
-MAX_NEW_TOKENS = 64
-TEMPERATURE = 0.0
