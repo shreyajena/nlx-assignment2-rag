@@ -4,7 +4,7 @@ import os
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 def setup_llm(model_name="google/flan-t5-small"):
-   #Load a lightweight local model for QA (default: flan-t5-small).Returns tokenizer and model.
+   #Loading lan-t5-small
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     return tokenizer, model

@@ -4,9 +4,11 @@ from naive_rag import get_or_build_faiss, rag
 import config
 import numpy as np
 import faiss
+from enhanced_rag import enhanced_rag
 import json, os, random
 RESULTS_PATH_STEP3 = "results/naive_results_step3.json"
 RESULTS_PATH_STEP4 = "results/naive_results_step4.json"
+RESULTS_PATH_STEP5 = "results/enhanced_results_step5.json"
 
 # ---------- Load Test Queries ----------
 def load_test_queries(path=config.QUERIES_PATH):
@@ -34,7 +36,12 @@ def evaluate(schema, index, embedder, queries, style="basic", k=1, max_queries=N
         concat = True if k > 1 else False
 
         try:
-            pred = rag(q, schema, index, embedder, k=k, style=style,concat=concat )
+             # ---Prediction for Naive rag---
+             # pred = rag(q, schema, index, embedder, k=k, style=style,concat=concat )
+
+            # ---Prediction for Enhanced rag---
+            pred = enhanced_rag(q, schema, index, embedder, k=3)
+
         except Exception as e:
             pred = "ERROR"
 
@@ -102,11 +109,11 @@ def run_step4_experiments():
 
 if __name__ == "__main__":
 
-    print("\n========== STEP 3: Prompting Startegy Comparison ==========")
     schema, index, embedder = get_or_build_faiss(config.PASSAGES_PATH, config.EMBED_MODEL)
     queries = load_test_queries()
 
     all_results = {}
+    # Change here based on what type of styles to run and evaluate
     for style in ["basic", "cot", "persona", "instruction"]:
         print(f"\n--- Evaluating Prompting Startegies/Style: {style} ---")
 
@@ -126,12 +133,13 @@ if __name__ == "__main__":
             print("-" * 40)
     
     # Save results to JSON
+    # Make sure to change path as per evaluation step
     os.makedirs("results", exist_ok=True)
-    with open(RESULTS_PATH_STEP3, "w") as f:
+    with open(RESULTS_PATH_STEP5, "w") as f:
         json.dump(all_results, f, indent=2)
     
-    print(f"Saved results to {RESULTS_PATH_STEP3}")
+    print(f"Saved results to {RESULTS_PATH_STEP5}")
 
-    # Run Step 4 only
-    print("\n========== STEP 4: Changing Embedding and Top-k Parameters ==========")
-    run_step4_experiments()
+    # # Run Step 4 only
+    # print("\n========== STEP 4: Changing Embedding and Top-k Parameters ==========")
+    # run_step4_experiments()

@@ -79,17 +79,22 @@ def generate(query, context, style="basic"):
         "Answer the question clearly and directly using only the provided context. "
         "Respond in the fewest words possible (1–5 words)."
     )
+        #GROUNDING INSTRCUTIONS FOR STEP 5 ADDED
+    elif style == "basic_enhanced": 
+        system_prompt = (
+            "Use ONLY the context below to answer the question. "
+            "Cite supporting passages as [Doc:X]. "
+            "If the answer cannot be found, reply 'Not found in context.'"
+        )
     else:  
         system_prompt = (
         "Answer concisely using only the provided context. "
     )
-
-
     prompt = f"""{system_prompt}
     Context: {context}
     Question: {query}
-    Answer:
-    """
+    Answer:"""
+
     try:
         tokenizer, llm = setup_llm() 
         inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
@@ -99,14 +104,19 @@ def generate(query, context, style="basic"):
         return f"LLM Error: {e}"
 
 
-def rag(query, schema, index, embedder, k=config.TOP_K, style="basic", concat=False):
+def rag(query, schema, index, embedder, k=config.TOP_K, style="basic", concat=False, return_contexts=False):
     #Full RAG pipeline: retrieve + generate
     # Added context joining when retrieving top-k with k>1
    context = retrieve(query, index, embedder, schema, k)
    if not context:
         return "insufficient context"
    rag_context = "\n\n".join(context) if concat else context[0]
-   return generate(query, rag_context, style=style)
+
+   answer = generate(query, rag_context, style=style)
+    # --- optional context return for evaluation ---
+   if return_contexts:
+        return context,answer
+   return answer
 
 # ---------- Main for Step 2 ----------
 if __name__ == "__main__":
